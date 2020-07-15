@@ -83,65 +83,73 @@ function calculatePacketLoss(lostPackets, totalPackets) {
 
 /**
  * Holds "statistics" for a single SSRC.
- * @constructor
  */
-function SsrcStats() {
-    this.loss = {};
-    this.bitrate = {
-        download: 0,
-        upload: 0
-    };
-    this.resolution = {};
-    this.framerate = 0;
-    this.codec = '';
+class SsrcStats {
+    /**
+     * A constructor.
+     */
+    constructor() {
+        this.loss = {};
+        this.bitrate = {
+            download: 0,
+            upload: 0
+        };
+        this.resolution = {};
+        this.framerate = 0;
+        this.codec = '';
+    }
+
+    /**
+     * Sets the "loss" object.
+     * @param loss the value to set.
+     */
+    setLoss(loss) {
+        this.loss = loss || {};
+    }
+
+    /**
+     * Sets resolution that belong to the ssrc represented by this instance.
+     * @param resolution new resolution value to be set.
+     */
+    setResolution(resolution) {
+        this.resolution = resolution || {};
+    }
+
+    /**
+     * Adds the "download" and "upload" fields from the "bitrate" parameter to
+     * the respective fields of the "bitrate" field of this object.
+     * @param bitrate an object holding the values to add.
+     */
+    addBitrate(bitrate) {
+        this.bitrate.download += bitrate.download;
+        this.bitrate.upload += bitrate.upload;
+    }
+
+    /**
+     * Resets the bit rate for given <tt>ssrc</tt> that belong to the peer
+     * represented by this instance.
+     */
+    resetBitrate() {
+        this.bitrate.download = 0;
+        this.bitrate.upload = 0;
+    }
+
+    /**
+     * Sets the "framerate".
+     * @param framerate the value to set.
+     */
+    setFramerate(framerate) {
+        this.framerate = framerate || 0;
+    }
+
+    /**
+     * Sets the "codec".
+     * @param codec the value to set.
+     */
+    setCodec(codec) {
+        this.codec = codec || '';
+    }
 }
-
-/**
- * Sets the "loss" object.
- * @param loss the value to set.
- */
-SsrcStats.prototype.setLoss = function(loss) {
-    this.loss = loss || {};
-};
-
-/**
- * Sets resolution that belong to the ssrc represented by this instance.
- * @param resolution new resolution value to be set.
- */
-SsrcStats.prototype.setResolution = function(resolution) {
-    this.resolution = resolution || {};
-};
-
-/**
- * Adds the "download" and "upload" fields from the "bitrate" parameter to
- * the respective fields of the "bitrate" field of this object.
- * @param bitrate an object holding the values to add.
- */
-SsrcStats.prototype.addBitrate = function(bitrate) {
-    this.bitrate.download += bitrate.download;
-    this.bitrate.upload += bitrate.upload;
-};
-
-/**
- * Resets the bit rate for given <tt>ssrc</tt> that belong to the peer
- * represented by this instance.
- */
-SsrcStats.prototype.resetBitrate = function() {
-    this.bitrate.download = 0;
-    this.bitrate.upload = 0;
-};
-
-/**
- * Sets the "framerate".
- * @param framerate the value to set.
- */
-SsrcStats.prototype.setFramerate = function(framerate) {
-    this.framerate = framerate || 0;
-};
-
-SsrcStats.prototype.setCodec = function(codec) {
-    this.codec = codec || '';
-};
 
 /**
  *
@@ -250,11 +258,11 @@ export default function StatsCollector(
     this.audioLevelsIntervalMilis = audioLevelsInterval;
 
     this.statsIntervalId = null;
-    this.statsIntervalMilis = statsInterval;
+    this.statsIntervalMilis = 3000;
 
     /**
      * Maps SSRC numbers to {@link SsrcStats}.
-     * @type {Map<number,SsrcStats}
+     * @type {Map<Number, SsrcStats>}
      */
     this.ssrc2stats = new Map();
 }

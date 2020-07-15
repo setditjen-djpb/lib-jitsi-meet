@@ -1010,7 +1010,7 @@ TraceablePeerConnection.prototype._removeRemoteTrack = function(toBeRemoved) {
         logger.error(
             `Failed to remove ${toBeRemoved} - type mapping messed up ?`);
     }
-    this.eventEmitter.emit(RTCEvents.REMOTE_TRACK_REMOVED, toBeRemoved);
+    this.eventEmitter.emit(RTCEvents.REMOTE_TRACK_REMOVED, toBeRemoved, this);
 };
 
 /**

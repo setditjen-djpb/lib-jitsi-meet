@@ -22,6 +22,10 @@ export const TRACK_AUDIO_LEVEL_CHANGED = 'track.audioLevelsChanged';
  */
 export const TRACK_AUDIO_OUTPUT_CHANGED = 'track.audioOutputChanged';
 
+export const _TRACK_ATTACHED = 'track.attached';
+
+export const _TRACK_DETACHED = 'track.detached';
+
 /**
  * A media track mute status was changed.
  */

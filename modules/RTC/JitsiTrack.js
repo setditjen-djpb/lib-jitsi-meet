@@ -1,10 +1,10 @@
 /* global __filename, module */
-import EventEmitter from 'events';
 import { getLogger } from 'jitsi-meet-logger';
 import * as JitsiTrackEvents from '../../JitsiTrackEvents';
 import * as MediaType from '../../service/RTC/MediaType';
 import browser from '../browser';
 import RTCUtils from './RTCUtils';
+import Listenable from '../util/Listenable';
 
 const logger = getLogger(__filename);
 
@@ -20,7 +20,7 @@ const trackHandler2Prop = {
 /**
  * Represents a single media track (either audio or video).
  */
-export default class JitsiTrack extends EventEmitter {
+export default class JitsiTrack extends Listenable {
     /* eslint-disable max-params */
     /**
      * Represents a single media track (either audio or video).
@@ -43,9 +43,8 @@ export default class JitsiTrack extends EventEmitter {
             videoType) {
         super();
 
-        // aliases for addListener/removeListener
-        this.addEventListener = this.addListener;
-        this.removeEventListener = this.off = this.removeListener;
+        // alias for emit
+        this.emit = this.eventEmitter.emit.bind(this.eventEmitter);
 
         /**
          * Array with the HTML elements that are displaying the streams.
@@ -286,21 +285,26 @@ export default class JitsiTrack extends EventEmitter {
     }
 
     /**
+     * @typedef {Object} AttachOptions
+     * @property {boolean} preferredForStats - FIXME.
+     */
+    /**
      * Attaches the MediaStream of this track to an HTML container.
      * Adds the container to the list of containers that are displaying the
      * track.
      *
      * @param container the HTML container which can be 'video' or 'audio'
      * element.
+     * @param {AttachOptions} options - FIXME.
      *
      * @returns {void}
      */
-    attach(container) {
+    attach(container, options) {
+        this.containers.push(container);
         if (this.stream) {
-            this._onTrackAttach(container);
+            this._onTrackAttach(container, options);
             RTCUtils.attachMediaStream(container, this.stream);
         }
-        this.containers.push(container);
         this._maybeFireTrackAttached(container);
         this._attachTTFMTracker(container);
     }
@@ -337,10 +341,12 @@ export default class JitsiTrack extends EventEmitter {
      *
      * @param {HTMLElement} container the HTML container which can be 'video' or
      * 'audio' element.
+     * @param {AttachOptions} options - FIXME.
      * @private
      */
-    _onTrackAttach(container) { // eslint-disable-line no-unused-vars
-        // Should be defined by the classes that are extending JitsiTrack
+    _onTrackAttach(container, options) { // eslint-disable-line no-unused-vars
+        logger.debug(`${this} has been attached to a container`);
+        this.emit(JitsiTrackEvents._TRACK_ATTACHED, this, container, options);
     }
 
     /**
@@ -348,10 +354,11 @@ export default class JitsiTrack extends EventEmitter {
      *
      * @param {HTMLElement} container the HTML container which can be 'video' or
      * 'audio' element.
-     * @private
+     * @protected
      */
     _onTrackDetach(container) { // eslint-disable-line no-unused-vars
-        // Should be defined by the classes that are extending JitsiTrack
+        logger.debug(`${this} has been detached from a container`);
+        this.emit(JitsiTrackEvents._TRACK_DETACHED, this, container);
     }
 
     /**

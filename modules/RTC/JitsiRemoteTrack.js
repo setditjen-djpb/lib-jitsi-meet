@@ -2,6 +2,7 @@ import { createTtfmEvent } from '../../service/statistics/AnalyticsEvents';
 import JitsiTrack from './JitsiTrack';
 import * as JitsiTrackEvents from '../../JitsiTrackEvents';
 import Statistics from '../statistics/statistics';
+import { VFS } from '../statistics/VFS';
 
 const logger = require('jitsi-meet-logger').getLogger(__filename);
 const RTCEvents = require('../../service/RTC/RTCEvents');
@@ -63,6 +64,8 @@ export default class JitsiRemoteTrack extends JitsiTrack {
             mediaType,
             videoType);
         this.rtc = rtc;
+
+        this._cbCounter = 0;
 
         // Prevent from mixing up type of SSRC which should be a number
         if (typeof ssrc !== 'number') {
@@ -270,8 +273,7 @@ export default class JitsiRemoteTrack extends JitsiTrack {
      * @private
      */
     _onTrackAttach(container) {
-        logger.debug(`Track has been attached to a container: ${this}`);
-
+        super._onTrackAttach(container);
         containerEvents.forEach(event => {
             container.addEventListener(event, this._containerHandlers[event]);
         });
@@ -282,11 +284,10 @@ export default class JitsiRemoteTrack extends JitsiTrack {
      *
      * @param {HTMLElement} container the HTML container which can be 'video' or
      * 'audio' element.
-     * @private
+     * @protected
      */
     _onTrackDetach(container) {
-        logger.debug(`Track has been detached from a container: ${this}`);
-
+        super._onTrackDetach(container);
         containerEvents.forEach(event => {
             container.removeEventListener(event, this._containerHandlers[event]);
         });

@@ -337,6 +337,10 @@ Statistics.prototype._stopRemoteStats = function(tpcId) {
     }
 };
 
+Statistics.prototype._getRtpStats = function() {
+    return this.rtpStatsMap;
+};
+
 /**
  * Stops collecting RTP stats for given peerconnection
  * @param {TraceablePeerConnection} tpc
