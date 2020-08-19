@@ -331,11 +331,23 @@ export default class JingleSessionPC extends JingleSession {
         pcOptions.enableInsertableStreams = options.enableInsertableStreams;
         pcOptions.videoQuality = options.videoQuality;
 
+        // codec preference options for jvb connection.
+        if (pcOptions.videoQuality) {
+            pcOptions.disabledCodec = pcOptions.videoQuality.disabledCodec;
+            pcOptions.preferredCodec = pcOptions.videoQuality.preferredCodec;
+        }
+
         if (this.isP2P) {
             // simulcast needs to be disabled for P2P (121) calls
             pcOptions.disableSimulcast = true;
             pcOptions.disableH264 = options.p2p && options.p2p.disableH264;
             pcOptions.preferH264 = options.p2p && options.p2p.preferH264;
+
+            // codec preference options for p2p.
+            if (options.p2p) {
+                pcOptions.disabledCodec = options.p2p.disabledCodec;
+                pcOptions.preferredCodec = options.p2p.preferredCodec;
+            }
 
             const abtestSuspendVideo = this._abtestSuspendVideoEnabled(options);
 
@@ -549,7 +561,6 @@ export default class JingleSessionPC extends JingleSession {
             const state = this.peerconnection.signalingState;
             const remoteDescription = this.peerconnection.remoteDescription;
 
-            this.room.eventEmitter.emit(XMPPEvents.PEERCONNECTION_READY, this);
             if (browser.usesUnifiedPlan() && state === 'stable'
                 && remoteDescription && typeof remoteDescription.sdp === 'string') {
                 logger.debug(`onnegotiationneeded fired on ${this.peerconnection} in state: ${state}`);
@@ -1381,12 +1392,15 @@ export default class JingleSessionPC extends JingleSession {
      * Sets the maximum bitrates on the local video track if the current
      * session is a JVB session. Bitrate values from videoQuality settings
      * in config.js will be used for configuring the sender.
-     * @returns {void}
+     * @returns {Promise<void>} promise that will be resolved when the operation is
+     * successful and rejected otherwise.
      */
     setSenderMaxBitrates() {
         if (this._assertNotEnded() && !this.isP2P) {
             return this.peerconnection.setMaxBitRate();
         }
+
+        return Promise.resolve();
     }
 
     /**
@@ -1408,12 +1422,15 @@ export default class JingleSessionPC extends JingleSession {
     /**
      * Sets the degradation preference on the video sender. This setting determines if
      * resolution or framerate will be preferred when bandwidth or cpu is constrained.
-     * @returns {void}
+     * @returns {Promise<void>} promise that will be resolved when the operation is
+     * successful and rejected otherwise.
      */
     setSenderVideoDegradationPreference() {
         if (this._assertNotEnded()) {
-            this.peerconnection.setSenderVideoDegradationPreference();
+            return this.peerconnection.setSenderVideoDegradationPreference();
         }
+
+        return Promise.resolve();
     }
 
     /**
@@ -2067,9 +2084,9 @@ export default class JingleSessionPC extends JingleSession {
                 // Apply the video constraints, max bitrates and degradation preference on
                 // the video sender if needed.
                 if (track.isVideoTrack() && browser.doesVideoMuteByStreamRemove()) {
-                    this.setSenderMaxBitrates();
-                    this.setSenderVideoDegradationPreference();
-                    this.setSenderVideoConstraint();
+                    return this.setSenderMaxBitrates()
+                        .then(() => this.setSenderVideoDegradationPreference())
+                        .then(() => this.setSenderVideoConstraint());
                 }
             });
     }
