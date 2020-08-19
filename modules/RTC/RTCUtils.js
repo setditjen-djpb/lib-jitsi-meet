@@ -997,7 +997,7 @@ class RTCUtils extends Listenable {
         return new Promise((resolve, reject) => {
             navigator.mediaDevices.getUserMedia(constraints)
                 .then(stream => {
-                    logger.log('onUserMediaSuccess');
+                    logger.log('_onUserMediaSuccess');
                     updateGrantedPermissions(umDevices, stream);
                     resolve(stream);
                 })
